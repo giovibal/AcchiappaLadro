@@ -7,7 +7,6 @@ import datetime
 import paho.mqtt.publish as publish
 import subprocess
 
-
 sensor = 4
 
 relay_ch1 = 17
@@ -29,9 +28,9 @@ GPIO.setup(relay_ch4, GPIO.OUT)
 
 # previous_state = False
 # current_state = False
-presenza_rilevata = 0
+# presenza_rilevata = 0
 
-def presence_detected(current_state):
+def presence_detected():
     # Randomly return True (like a fake motion detection routine)
     #return random.randint(0, 10) == 0
 
@@ -96,13 +95,13 @@ with picamera.PiCamera() as camera:
         while True:
             camera.wait_recording(1)
 
-            presenza_rilevata = presence_detected(presenza_rilevata)
+            presenza_rilevata = presence_detected()
             if presenza_rilevata == 1:
                 ts_str = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
                 print("%s Presenza rilevata !" % ts_str)
 
                 # infrared lamp on
-                turn_light_on()
+                # turn_light_on()
 
                 # write_photo(camera, ts_str)
 
@@ -112,8 +111,9 @@ with picamera.PiCamera() as camera:
                 print("%s Registrazione completata per il video" % ts_str)
                 write_video(stream, ts_str)
 
+            # else:
                 # infrared lamp off
-                turn_light_off()
+                # turn_light_off()
 
     finally:
         camera.stop_recording()
