@@ -17,7 +17,7 @@ current_state = False
 def write_photo(camera, timestamp):
     filename = 'photo_%s.jpg' % timestamp
     print('Writing photo %s ...' % filename)
-    camera.capture(filename, resize=(320, 240))
+    camera.capture(filename, resize=(1280, 768))
     print('Writing photo %s done.' % filename)
 
     print('Uploading photo %s ...' % filename)
@@ -48,7 +48,7 @@ def write_video(stream, timestamp):
 with picamera.PiCamera() as camera:
     stream = picamera.PiCameraCircularIO(camera, seconds=1)
     # camera.resolution = (640, 480)
-    camera.framerate = 10
+    # camera.framerate = 10
     camera.hflip = True
     camera.vflip = True
     camera.start_recording(stream, format='h264', quality=20)
@@ -74,7 +74,7 @@ with picamera.PiCamera() as camera:
 
                     # Keep recording for 10 seconds and only then write the
                     # stream to disk
-                    camera.wait_recording(10)
+                    camera.wait_recording(20)
                     print("%s Registrazione completata per il video" % ts_str)
                     write_video(stream, ts_str)
 
