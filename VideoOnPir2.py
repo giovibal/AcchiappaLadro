@@ -8,6 +8,8 @@ import sys
 
 sensor = 4
 
+gdriveCMD = "/home/pi/AcchiappaLadro/gdrive/gdrive -c /home/pi/AcchiappaLadro/gdrive/conf upload -p 0B5VaZPNYmmfca0dnMDdFLXppNTA -f {} && rm {} &"
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(sensor, GPIO.IN, GPIO.PUD_DOWN)
 
@@ -17,19 +19,21 @@ current_state = False
 previous_datetime = datetime.datetime.now()
 current_datetime = datetime.datetime.now()
 
+diagnosticCounter = 0
+
 def write_photo(camera, timestamp):
-    filename = 'photo_%s.jpg' % timestamp
+    filename = '/home/pi/AcchiappaLadro/photo_%s.jpg' % timestamp
     print('Writing photo %s ...' % filename)
-    camera.capture(filename, resize=(1280, 768))
+    camera.capture(filename, resize=(1280, 768), use_video_port=True)
     print('Writing photo %s done.' % filename)
 
     print('Uploading photo %s ...' % filename)
-    cmd = "./gdrive/gdrive -c ./gdrive/conf upload -p 0B5VaZPNYmmfca0dnMDdFLXppNTA -f ./{} && rm ./{} &".format(filename, filename)
+    cmd = gdriveCMD.format(filename, filename)
     subprocess.call(cmd, shell=True)
     print('Uploading photo %s started' % filename)
 
 def write_video(stream, timestamp):
-    filename = 'motion_%s.h264' % timestamp
+    filename = '/home/pi/AcchiappaLadro/motion_%s.h264' % timestamp
     print('Writing video %s ...' % filename)
     with stream.lock:
         # Find the first header frame in the video
@@ -44,32 +48,46 @@ def write_video(stream, timestamp):
     print('Writing video %s done.' % filename)
 
     print('Uploading video %s ...' % filename)
-    cmd = "./gdrive/gdrive -c ./gdrive/conf upload -p 0B5VaZPNYmmfca0dnMDdFLXppNTA -f ./{} && rm ./{} &".format(filename, filename)
+    cmd = gdriveCMD.format(filename, filename)
     subprocess.call(cmd, shell=True)
     print('Uploading video %s started' % filename)
 
+def mqtt_publish(topic, msg, retn):
+    # publish.single(topic, msg, hostname="iot.eclipse.org", retain=True)
+    publish.single(topic, msg, hostname="104.154.60.150", retain=retn)
+
 with picamera.PiCamera() as camera:
-    stream = picamera.PiCameraCircularIO(camera, seconds=2)
+    stream = picamera.PiCameraCircularIO(camera, seconds=15)
 
     # Turn the camera's LED off
     camera.led = False
 
-    camera.resolution = (1280, 768)
-    camera.iso = 800
+    camera.resolution = (640, 480)
+    # camera.iso = 800
     # camera.framerate = 10
-    # camera.hflip = True
-    # camera.vflip = True
-    camera.start_recording(stream, format='h264', quality=20)
+    camera.hflip = True
+    camera.vflip = True
+    # camera.start_recording(stream, format='h264', quality=20)
+    camera.start_recording(stream, format='h264')
     try:
         while True:
             # time.sleep(0.1)
             # camera.wait_recording(1)
             camera.wait_recording(0.1)
+            ts_str = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+            diagnosticCounter = diagnosticCounter + 1
+            if diagnosticCounter % (10*60) == 0:
+                msg = "Nessuna presenza - %s " % ts_str
+                publish.single("/baleani/laspio/pir1", msg, hostname="iot.eclipse.org", retain=True)
+                mqtt_publish("/baleani/laspio/pir1", msg, False)
+                diagnosticCounter = 0
+
+
             previous_state = current_state
             current_state = GPIO.input(sensor)
             if current_state != previous_state:
                 new_state = "HIGH" if current_state else "LOW"
-                ts_str = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
                 print("%s GPIO pin %s is %s" % (ts_str, sensor, new_state))
 
@@ -81,7 +99,7 @@ with picamera.PiCamera() as camera:
                         time_delta = current_datetime - previous_datetime
                         previous_datetime = current_datetime
                         msg = "Presenza rilevata - %s (%s tempo passato: %s)" % (ts_str, new_state, time_delta)
-                        publish.single("/baleani/laspio/pir1", msg, hostname="iot.eclipse.org", retain=True)
+                        mqtt_publish("/baleani/laspio/pir1", msg, True)
                     except:
                         print("Error with publish on mqtt: ", sys.exc_info()[0])
 
