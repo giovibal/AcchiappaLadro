@@ -53,11 +53,14 @@ def write_video(stream, timestamp):
     print('Uploading video %s started' % filename)
 
 def mqtt_publish(topic, msg, retn):
-    # publish.single(topic, msg, hostname="iot.eclipse.org", retain=True)
-    publish.single(topic, msg, hostname="104.154.60.150", retain=retn)
+    try:
+        # publish.single(topic, msg, hostname="iot.eclipse.org", retain=True)
+        publish.single(topic, msg, hostname="104.154.60.150", retain=retn)
+    except:
+        print("Error with publish on mqtt: ", sys.exc_info()[0])
 
 with picamera.PiCamera() as camera:
-    stream = picamera.PiCameraCircularIO(camera, seconds=15)
+    stream = picamera.PiCameraCircularIO(camera, seconds=5)
 
     # Turn the camera's LED off
     camera.led = False
@@ -69,6 +72,7 @@ with picamera.PiCamera() as camera:
     camera.vflip = True
     # camera.start_recording(stream, format='h264', quality=20)
     camera.start_recording(stream, format='h264')
+    print("Program started at %s" % datetime.datetime.now())
     try:
         while True:
             # time.sleep(0.1)
@@ -79,6 +83,7 @@ with picamera.PiCamera() as camera:
             diagnosticCounter = diagnosticCounter + 1
             if diagnosticCounter % (10*60) == 0:
                 msg = "Nessuna presenza - %s " % ts_str
+                print(msg)
                 publish.single("/baleani/laspio/pir1", msg, hostname="iot.eclipse.org", retain=True)
                 mqtt_publish("/baleani/laspio/pir1", msg, False)
                 diagnosticCounter = 0
@@ -94,14 +99,11 @@ with picamera.PiCamera() as camera:
                 if new_state == "HIGH":
                     print("%s Presenza rilevata !" % ts_str)
 
-                    try:
-                        current_datetime = datetime.datetime.now()
-                        time_delta = current_datetime - previous_datetime
-                        previous_datetime = current_datetime
-                        msg = "Presenza rilevata - %s (%s tempo passato: %s)" % (ts_str, new_state, time_delta)
-                        mqtt_publish("/baleani/laspio/pir1", msg, True)
-                    except:
-                        print("Error with publish on mqtt: ", sys.exc_info()[0])
+                    current_datetime = datetime.datetime.now()
+                    time_delta = current_datetime - previous_datetime
+                    previous_datetime = current_datetime
+                    msg = "Presenza rilevata - %s (%s tempo passato: %s)" % (ts_str, new_state, time_delta)
+                    mqtt_publish("/baleani/laspio/pir1", msg, True)
 
                     # infrared lamp on
                     # turn_light_on()
@@ -131,5 +133,6 @@ with picamera.PiCamera() as camera:
     finally:
         camera.stop_recording()
         GPIO.cleanup()
+        print("Program ended at %s" % datetime.datetime.now())
 
 
