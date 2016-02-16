@@ -54,8 +54,7 @@ def write_video(stream, timestamp):
 
 def mqtt_publish(topic, msg, retn):
     try:
-        # publish.single(topic, msg, hostname="iot.eclipse.org", retain=True)
-        publish.single(topic, msg, hostname="104.154.60.150", retain=retn)
+        publish.single(topic, msg, hostname="iot.eclipse.org", retain=True)
     except:
         print("Error with publish on mqtt: ", sys.exc_info()[0])
 
