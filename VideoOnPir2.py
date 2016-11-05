@@ -31,7 +31,7 @@ diagnosticCounter = 0
 
 
 def configure():
-    config = configparser.ConfigParser()
+    config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
     config.read('config.ini')
     return config
 
