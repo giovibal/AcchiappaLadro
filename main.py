@@ -110,7 +110,7 @@ with picamera.PiCamera() as camera:
             ts = datetime.datetime.now()
             ts_str = ts.strftime('%Y-%m-%d_%H-%M-%S')
 
-            diagnosticCounter += 1
+            diagnosticCounter = diagnosticCounter + 1
             if diagnosticCounter % (10*60) == 0:
                 msg = "Nessuna presenza - %s " % ts_str
                 print(msg)
