@@ -6,16 +6,17 @@ import io
 import subprocess
 import sys
 import json
+import configparser
 
-sensor = 4
+# pir_id = "1"
+# mqtt_host = "iot.eclipse.org"
+# mqtt_topic = "/baleani/laspio/pir/%s" % pir_id
+file_path_photo = '/home/pi/AcchiappaLadro/photo_%s_%s.jpg'
+file_path_video = '/home/pi/AcchiappaLadro/video_%s_%s.h264'
 
 gdriveCMD = "/home/pi/AcchiappaLadro/gdrive/gdrive -c /home/pi/AcchiappaLadro/gdrive/conf upload -p 0B5VaZPNYmmfca0dnMDdFLXppNTA -f {} && rm {} &"
 
-pir_id = "1"
-mqtt_host = "iot.eclipse.org"
-mqtt_topic = "/baleani/laspio/pir/%s" % pir_id
-file_path_photo = '/home/pi/AcchiappaLadro/photo_%s_%s.jpg'
-file_path_video = '/home/pi/AcchiappaLadro/video_%s_%s.h264'
+sensor = 4
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(sensor, GPIO.IN, GPIO.PUD_DOWN)
@@ -28,6 +29,13 @@ current_datetime = datetime.datetime.now()
 
 diagnosticCounter = 0
 
+
+def configure():
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    return config
+
+
 def write_photo(camera, timestamp):
     filename = file_path_photo % (pir_id, timestamp)
     print('Writing photo %s ...' % filename)
@@ -39,18 +47,19 @@ def write_photo(camera, timestamp):
     subprocess.call(cmd, shell=True)
     print('Uploading photo %s started' % filename)
 
-def write_video(stream, timestamp):
+
+def write_video(video_stream, timestamp):
     filename = file_path_video % (pir_id, timestamp)
     print('Writing video %s ...' % filename)
-    with stream.lock:
+    with video_stream.lock:
         # Find the first header frame in the video
-        for frame in stream.frames:
+        for frame in video_stream.frames:
             if frame.frame_type == picamera.PiVideoFrameType.sps_header:
-                stream.seek(frame.position)
+                video_stream.seek(frame.position)
                 break
-        # Write the rest of the stream to disk
+        # Write the rest of the video_stream to disk
         with io.open(filename, 'wb') as output:
-            output.write(stream.read())
+            output.write(video_stream.read())
 
     print('Writing video %s done.' % filename)
 
@@ -67,6 +76,12 @@ def mqtt_publish(topic, msg, retn, v, ts):
         print("Error with publish on mqtt: ", sys.exc_info()[0])
 
 with picamera.PiCamera() as camera:
+    config = configure()
+    pir_id = config['device']['pir_id']
+    mqtt_host = config['mqtt']['mqtt_host']
+    mqtt_topic = config['mqtt']['mqtt_topic']
+    gdriveCMD = config['gdrive']['cmd']
+
     stream = picamera.PiCameraCircularIO(camera, seconds=5)
 
     # Turn the camera's LED off
@@ -112,10 +127,10 @@ with picamera.PiCamera() as camera:
                 if new_state == "HIGH":
                     print("%s Presenza rilevata !" % ts_str)
 
-                    current_datetime = datetime.datetime.now()
-                    time_delta = current_datetime - previous_datetime
-                    previous_datetime = current_datetime
-                    msg = "Presenza rilevata - %s (%s tempo passato: %s)" % (ts_str, new_state, time_delta)
+                    # current_datetime = datetime.datetime.now()
+                    # time_delta = current_datetime - previous_datetime
+                    # previous_datetime = current_datetime
+                    msg = "Presenza rilevata - %s" % ts_str
                     mqtt_publish(mqtt_topic, msg, False, 1, ts)
 
                     # infrared lamp on
@@ -131,11 +146,8 @@ with picamera.PiCamera() as camera:
 
                 # else:
                 #     if new_state == "LOW":
-                #         try:
-                #             current_datetime = datetime.datetime.now()
-                #             time_delta = current_datetime - previous_datetime
-                #             previous_datetime = current_datetime
-                #             msg = "Nessuno - %s (%s tempo passato: %s)" % (ts_str, new_state, time_delta)
+                #         try:_datetime
+                #             msg = "Nessuno - %s" % ts_str
                 #             publish.single("/baleani/laspio/pir1", msg, hostname="iot.eclipse.org", retain=True)
                 #         except:
                 #             print "Error with publish on mqtt: ", sys.exc_info()[0]
