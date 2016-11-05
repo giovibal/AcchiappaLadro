@@ -35,8 +35,6 @@ class Cam:
         # Assign event callbacks
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
-        # Connect
-        self.mqtt_client.connect(self.mqtt_host, 1883, 20)
 
     def on_connect(self, mosq, obj, rc):
         self.mqtt_client.subscribe(self.mqtt_topic, 0)
@@ -50,10 +48,10 @@ class Cam:
         else:
             self.presence_detected = False
 
-    def write_photo(self, timestamp):
+    def write_photo(self, camera, timestamp):
         filename = self.file_path_photo % (self.local_tmp_dir, self.pir_id, timestamp)
         print('Writing photo %s ...' % filename)
-        self.camera.capture(filename, resize=(1280, 768), use_video_port=True)
+        camera.capture(filename, resize=(1280, 768), use_video_port=True)
         print('Writing photo %s done.' % filename)
         print('Uploading photo %s ...' % filename)
         cmd = self.gdriveCMD.format(filename, filename)
@@ -80,6 +78,9 @@ class Cam:
         print('Uploading video %s started' % filename)
 
     def start(self):
+        # Connect to MQTT
+        self.mqtt_client.connect(self.mqtt_host, 1883, 20)
+
         with picamera.PiCamera() as self.camera:
             stream = picamera.PiCameraCircularIO(self.camera, seconds=5)
             # Turn the camera's LED off
@@ -108,7 +109,7 @@ class Cam:
                     if self.presence_detected:
                         msg = "Presenza rilevata - %s" % ts_str
                         print(msg)
-                        self.write_photo(ts_str)
+                        self.write_photo(self.camera, ts_str)
                         # Keep recording for 10 seconds and only then write the
                         # stream to disk
                         self.camera.wait_recording(10)
@@ -118,5 +119,3 @@ class Cam:
             finally:
                 self.camera.stop_recording()
                 print("Program ended at %s" % datetime.datetime.now())
-
-
