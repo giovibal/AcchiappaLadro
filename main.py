@@ -69,6 +69,8 @@ def mqtt_publish(topic, msg, retn, v, ts, device_id):
         pubmsg = json.dumps({'devid':device_id,'msg': msg, 'v': v, 'ts': ts.isoformat()})
         publish.single(topic, pubmsg, hostname=mqtt_host, retain=retn)
         publish.single(topic + "/presence", v, hostname=mqtt_host, retain=retn)
+        publish.single(topic + "/message", msg, hostname=mqtt_host, retain=retn)
+        publish.single(topic + "/ts", ts, hostname=mqtt_host, retain=retn)
     except:
         print("Error with publish on mqtt: ", sys.exc_info()[0])
 
