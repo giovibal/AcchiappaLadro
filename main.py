@@ -68,6 +68,7 @@ def mqtt_publish(topic, msg, retn, v, ts, device_id):
     try:
         pubmsg = json.dumps({'devid':device_id,'msg': msg, 'v': v, 'ts': ts.isoformat()})
         publish.single(topic, pubmsg, hostname=mqtt_host, retain=retn)
+        publish.single(topic + "/presence", v, hostname=mqtt_host, retain=retn)
     except:
         print("Error with publish on mqtt: ", sys.exc_info()[0])
 
@@ -135,13 +136,13 @@ with picamera.PiCamera() as camera:
                     # infrared lamp on
                     # turn_light_on()
 
-                    write_photo(camera, ts_str)
+                    write_photo(camera, ts_str, local_tmp_dir)
 
                     # Keep recording for 10 seconds and only then write the
                     # stream to disk
                     camera.wait_recording(10)
                     print("%s Registrazione completata per il video" % ts_str)
-                    write_video(stream, ts_str)
+                    write_video(stream, ts_str, local_tmp_dir)
 
                 # else:
                 #     if new_state == "LOW":
