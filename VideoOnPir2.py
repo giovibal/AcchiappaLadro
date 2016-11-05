@@ -68,12 +68,14 @@ def write_video(video_stream, timestamp):
     subprocess.call(cmd, shell=True)
     print('Uploading video %s started' % filename)
 
-def mqtt_publish(topic, msg, retn, v, ts):
+
+def mqtt_publish(topic, msg, retn, v, ts, device_id):
     try:
-        pubmsg = json.dumps({'msg': msg, 'v': v, 'ts': ts.isoformat()})
+        pubmsg = json.dumps({'devid':device_id,'msg': msg, 'v': v, 'ts': ts.isoformat()})
         publish.single(topic, pubmsg, hostname=mqtt_host, retain=retn)
     except:
         print("Error with publish on mqtt: ", sys.exc_info()[0])
+
 
 with picamera.PiCamera() as camera:
     config = configure()
@@ -110,11 +112,11 @@ with picamera.PiCamera() as camera:
             ts = datetime.datetime.now()
             ts_str = ts.strftime('%Y-%m-%d_%H-%M-%S')
 
-            diagnosticCounter = diagnosticCounter + 1
+            diagnosticCounter += 1
             if diagnosticCounter % (10*60) == 0:
                 msg = "Nessuna presenza - %s " % ts_str
                 print(msg)
-                mqtt_publish(mqtt_topic, msg, False, 0, ts)
+                mqtt_publish(mqtt_topic, msg, False, 0, ts, pir_id)
                 diagnosticCounter = 0
 
             previous_state = current_state
@@ -131,7 +133,7 @@ with picamera.PiCamera() as camera:
                     # time_delta = current_datetime - previous_datetime
                     # previous_datetime = current_datetime
                     msg = "Presenza rilevata - %s" % ts_str
-                    mqtt_publish(mqtt_topic, msg, False, 1, ts)
+                    mqtt_publish(mqtt_topic, msg, False, 1, ts, pir_id)
 
                     # infrared lamp on
                     # turn_light_on()
