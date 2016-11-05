@@ -15,7 +15,7 @@ DAEMON_PATH="/home/pi/AcchiappaLadro"
 DAEMON="/usr/bin/python3"
 DAEMONOPTS="$DAEMON_PATH/cam.py"
 
-NAME="acchiappa-ladro-pir"
+NAME="acchiappa-ladro-cam"
 DESC="$NAME daemon"
 PIDFILE="/var/run/$NAME.pid"
 SCRIPTNAME="/etc/init.d/$NAME"
