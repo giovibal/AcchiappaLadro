@@ -1,0 +1,85 @@
+import RPi.GPIO as GPIO
+import datetime
+import paho.mqtt.publish as publish
+import sys
+import json
+import configparser
+
+
+class Pir:
+
+    def __init__(self):
+        self.sensor = 4
+
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.sensor, GPIO.IN, GPIO.PUD_DOWN)
+
+        self.previous_state = False
+        self.current_state = False
+        self.previous_datetime = datetime.datetime.now()
+        self.current_datetime = datetime.datetime.now()
+        self.diagnosticCounter = 0
+
+        self.config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+        self.config.read('config.ini')
+
+        self.pir_id = self.config['device']['pir_id']
+        self.mqtt_host = self.config['mqtt']['mqtt_host']
+        self.mqtt_topic = self.config['mqtt']['mqtt_topic']
+
+        print("Program started at %s" % datetime.datetime.now())
+        print("-----------------------------------------------")
+        print("pir ID    : %s" % self.pir_id)
+        print("mqtt host : %s" % self.mqtt_host)
+        print("mqtt topic: %s" % self.mqtt_topic)
+        print("-----------------------------------------------")
+
+    def mqtt_publish(self, msg, retain, v, ts):
+        try:
+            pubmsg = json.dumps({'devid':self.pir_id,'msg': msg, 'v': v, 'ts': ts.isoformat()})
+            publish.single(self.mqtt_topic, pubmsg, hostname=mqtt_host, retain=retain)
+            publish.single(self.mqtt_topic + "/presence", v, hostname=mqtt_host, retain=retain)
+            publish.single(self.mqtt_topic + "/message", msg, hostname=mqtt_host, retain=retain)
+            publish.single(self.mqtt_topic + "/ts", ts, hostname=mqtt_host, retain=retain)
+        except:
+            print("Error with publish on mqtt: ", sys.exc_info()[0])
+
+    def start(self):
+        try:
+            while True:
+                datetime.time.sleep(0.1)
+                ts = datetime.datetime.now()
+                ts_str = ts.strftime('%Y-%m-%d_%H-%M-%S')
+
+                self.diagnosticCounter += 1
+                # if diagnosticCounter % (10*60) == 0:
+                if self.diagnosticCounter % (10*5) == 0:
+                    msg = "Nessuna presenza - %s " % ts_str
+                    print(msg)
+                    self.mqtt_publish(msg, False, 0, ts)
+                    self.diagnosticCounter = 0
+
+                previous_state = current_state
+                # print("prev state %s, curr state %s" % (previous_state, current_state))
+                current_state = GPIO.input(self.sensor)
+                if current_state != previous_state:
+                    new_state = "HIGH" if current_state else "LOW"
+
+                    print("%s GPIO pin %s is %s" % (ts_str, self.sensor, new_state))
+
+                    if new_state == "HIGH":
+                        msg = "Presenza rilevata - %s" % ts_str
+                        print(msg)
+                        self.mqtt_publish(msg, False, 1, ts)
+        finally:
+            GPIO.cleanup()
+            print("Program ended at %s" % datetime.datetime.now())
+
+
+
+if __name__ == "__main__":
+    pir = Pir()
+    pir.start()
+else:
+    print("pir.py is being imported into another module")
+

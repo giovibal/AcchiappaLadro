@@ -64,13 +64,13 @@ def write_video(video_stream, timestamp, local_tmp_dir):
     print('Uploading video %s started' % filename)
 
 
-def mqtt_publish(topic, msg, retn, v, ts, device_id):
+def mqtt_publish(topic, msg, retain, v, ts, device_id):
     try:
         pubmsg = json.dumps({'devid':device_id,'msg': msg, 'v': v, 'ts': ts.isoformat()})
-        publish.single(topic, pubmsg, hostname=mqtt_host, retain=retn)
-        publish.single(topic + "/presence", v, hostname=mqtt_host, retain=retn)
-        publish.single(topic + "/message", msg, hostname=mqtt_host, retain=retn)
-        publish.single(topic + "/ts", ts, hostname=mqtt_host, retain=retn)
+        publish.single(topic, pubmsg, hostname=mqtt_host, retain=retain)
+        publish.single(topic + "/presence", v, hostname=mqtt_host, retain=retain)
+        publish.single(topic + "/message", msg, hostname=mqtt_host, retain=retain)
+        publish.single(topic + "/ts", ts, hostname=mqtt_host, retain=retain)
     except:
         print("Error with publish on mqtt: ", sys.exc_info()[0])
 
