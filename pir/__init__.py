@@ -3,7 +3,7 @@ import datetime
 import paho.mqtt.publish as publish
 import sys
 import json
-
+import time
 
 class Pir:
 
@@ -48,7 +48,7 @@ class Pir:
     def start(self):
         try:
             while True:
-                datetime.time.sleep(0.1)
+                time.sleep(0.1)
                 ts = datetime.datetime.now()
                 ts_str = ts.strftime('%Y-%m-%d_%H-%M-%S')
 
