@@ -3,12 +3,20 @@ import datetime
 import paho.mqtt.publish as publish
 import sys
 import json
-import configparser
 
 
 class Pir:
 
-    def __init__(self):
+    def __init__(self, pir_id, mqtt_host, mqtt_topic):
+        # self.config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+        # self.config.read('config.ini')
+        # self.pir_id = self.config['device']['pir_id']
+        # self.mqtt_host = self.config['mqtt']['mqtt_host']
+        # self.mqtt_topic = self.config['mqtt']['mqtt_topic']
+        self.pir_id = pir_id
+        self.mqtt_host = mqtt_host
+        self.mqtt_topic = mqtt_topic
+
         self.sensor = 4
 
         GPIO.setmode(GPIO.BCM)
@@ -19,13 +27,6 @@ class Pir:
         self.previous_datetime = datetime.datetime.now()
         self.current_datetime = datetime.datetime.now()
         self.diagnosticCounter = 0
-
-        self.config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
-        self.config.read('config.ini')
-
-        self.pir_id = self.config['device']['pir_id']
-        self.mqtt_host = self.config['mqtt']['mqtt_host']
-        self.mqtt_topic = self.config['mqtt']['mqtt_topic']
 
         print("Program started at %s" % datetime.datetime.now())
         print("-----------------------------------------------")
