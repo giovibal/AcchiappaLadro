@@ -60,11 +60,11 @@ class Pir:
                     self.mqtt_publish(msg, False, 0, ts)
                     self.diagnosticCounter = 0
 
-                previous_state = current_state
+                previous_state = self.current_state
                 # print("prev state %s, curr state %s" % (previous_state, current_state))
-                current_state = GPIO.input(self.sensor)
-                if current_state != previous_state:
-                    new_state = "HIGH" if current_state else "LOW"
+                self.current_state = GPIO.input(self.sensor)
+                if self.current_state != previous_state:
+                    new_state = "HIGH" if self.current_state else "LOW"
 
                     print("%s GPIO pin %s is %s" % (ts_str, self.sensor, new_state))
 
