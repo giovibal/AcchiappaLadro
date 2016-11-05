@@ -29,7 +29,7 @@ current_datetime = datetime.datetime.now()
 diagnosticCounter = 0
 
 def write_photo(camera, timestamp):
-    filename = file_path_photo % pir_id % timestamp
+    filename = file_path_photo % (pir_id, timestamp)
     print('Writing photo %s ...' % filename)
     camera.capture(filename, resize=(1280, 768), use_video_port=True)
     print('Writing photo %s done.' % filename)
@@ -40,7 +40,7 @@ def write_photo(camera, timestamp):
     print('Uploading photo %s started' % filename)
 
 def write_video(stream, timestamp):
-    filename = file_path_video % pir_id % timestamp
+    filename = file_path_video % (pir_id, timestamp)
     print('Writing video %s ...' % filename)
     with stream.lock:
         # Find the first header frame in the video
