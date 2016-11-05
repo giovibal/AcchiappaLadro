@@ -14,7 +14,7 @@ import configparser
 file_path_photo = '/home/pi/AcchiappaLadro/photo_%s_%s.jpg'
 file_path_video = '/home/pi/AcchiappaLadro/video_%s_%s.h264'
 
-gdriveCMD = "/home/pi/AcchiappaLadro/gdrive/gdrive -c /home/pi/AcchiappaLadro/gdrive/conf upload -p 0B5VaZPNYmmfca0dnMDdFLXppNTA -f {} && rm {} &"
+# gdriveCMD = "/home/pi/AcchiappaLadro/gdrive/gdrive -c /home/pi/AcchiappaLadro/gdrive/conf upload -p 0B5VaZPNYmmfca0dnMDdFLXppNTA -f {} && rm {} &"
 
 sensor = 4
 
