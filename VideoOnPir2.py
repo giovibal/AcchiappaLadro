@@ -10,10 +10,11 @@ sensor = 4
 
 gdriveCMD = "/home/pi/AcchiappaLadro/gdrive/gdrive -c /home/pi/AcchiappaLadro/gdrive/conf upload -p 0B5VaZPNYmmfca0dnMDdFLXppNTA -f {} && rm {} &"
 
+pir_id = "1"
 mqtt_host = "iot.eclipse.org"
-mqtt_topic = "/baleani/laspio/pir/1"
-file_path_photo = '/home/pi/AcchiappaLadro/photo_%s.jpg'
-file_path_video = '/home/pi/AcchiappaLadro/video_%s.h264'
+mqtt_topic = "/baleani/laspio/pir/%s" % pir_id
+file_path_photo = '/home/pi/AcchiappaLadro/photo_%s_%s.jpg'
+file_path_video = '/home/pi/AcchiappaLadro/video_%s_%s.h264'
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(sensor, GPIO.IN, GPIO.PUD_DOWN)
@@ -27,7 +28,7 @@ current_datetime = datetime.datetime.now()
 diagnosticCounter = 0
 
 def write_photo(camera, timestamp):
-    filename = file_path_photo % timestamp
+    filename = file_path_photo % pir_id % timestamp
     print('Writing photo %s ...' % filename)
     camera.capture(filename, resize=(1280, 768), use_video_port=True)
     print('Writing photo %s done.' % filename)
@@ -38,7 +39,7 @@ def write_photo(camera, timestamp):
     print('Uploading photo %s started' % filename)
 
 def write_video(stream, timestamp):
-    filename = file_path_video % timestamp
+    filename = file_path_video % pir_id % timestamp
     print('Writing video %s ...' % filename)
     with stream.lock:
         # Find the first header frame in the video
@@ -77,6 +78,13 @@ with picamera.PiCamera() as camera:
     # camera.start_recording(stream, format='h264', quality=20)
     camera.start_recording(stream, format='h264')
     print("Program started at %s" % datetime.datetime.now())
+    print("-----------------------------------------------")
+    print("    pir ID: %s" % pir_id)
+    print(" mqtt host: %s" % mqtt_host)
+    print("mqtt topic: %s" % mqtt_topic)
+    print("photo file pattern: %s" % file_path_photo)
+    print("video file pattern: %s" % file_path_video)
+    print("-----------------------------------------------")
     try:
         while True:
             # time.sleep(0.1)
