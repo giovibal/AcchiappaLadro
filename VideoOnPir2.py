@@ -59,7 +59,7 @@ def write_video(stream, timestamp):
 
 def mqtt_publish(topic, msg, retn):
     try:
-        publish.single(topic, msg, hostname=mqtt_host, retain=True)
+        publish.single(topic, msg, hostname=mqtt_host, retain=retn)
     except:
         print("Error with publish on mqtt: ", sys.exc_info()[0])
 
@@ -88,7 +88,7 @@ with picamera.PiCamera() as camera:
             if diagnosticCounter % (10*60) == 0:
                 msg = "Nessuna presenza - %s " % ts_str
                 print(msg)
-                mqtt_publish("/baleani/laspio/pir1", msg, False)
+                mqtt_publish(mqtt_topic, msg, False)
                 diagnosticCounter = 0
 
             previous_state = current_state
@@ -105,7 +105,7 @@ with picamera.PiCamera() as camera:
                     time_delta = current_datetime - previous_datetime
                     previous_datetime = current_datetime
                     msg = "Presenza rilevata - %s (%s tempo passato: %s)" % (ts_str, new_state, time_delta)
-                    mqtt_publish("/baleani/laspio/pir1", msg, True)
+                    mqtt_publish(mqtt_topic, msg, False)
 
                     # infrared lamp on
                     # turn_light_on()
