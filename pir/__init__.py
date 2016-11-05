@@ -37,11 +37,11 @@ class Pir:
 
     def mqtt_publish(self, msg, retain, v, ts):
         try:
-            pubmsg = json.dumps({'devid':self.pir_id,'msg': msg, 'v': v, 'ts': ts.isoformat()})
+            pubmsg = json.dumps({'devid':self.pir_id, 'msg': msg, 'v': v, 'ts': ts.isoformat()})
             publish.single(self.mqtt_topic, pubmsg, hostname=self.mqtt_host, retain=retain)
             publish.single(self.mqtt_topic + "/presence", v, hostname=self.mqtt_host, retain=retain)
             publish.single(self.mqtt_topic + "/message", msg, hostname=self.mqtt_host, retain=retain)
-            publish.single(self.mqtt_topic + "/ts", ts, hostname=self.mqtt_host, retain=retain)
+            publish.single(self.mqtt_topic + "/ts", ts.isoformat(), hostname=self.mqtt_host, retain=retain)
         except NameError as ne:
             print("Error with publish on mqtt: {0}", format(ne))
         except:
