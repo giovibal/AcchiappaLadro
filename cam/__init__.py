@@ -33,7 +33,7 @@ class Cam:
 
         self.mqtt_client = mqtt.Client()
         # Assign event callbacks
-        # self.mqtt_client.on_connect = self.on_connect
+        self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
 
         print("Program started at %s" % datetime.datetime.now())
