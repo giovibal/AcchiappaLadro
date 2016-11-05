@@ -14,5 +14,5 @@ presence = pir.Pir(pir_id=pir_id
                    , mqtt_host=mqtt_host
                    , mqtt_topic=mqtt_topic)
 
-print("initializing pir ... ")
+print("starting pir ... ")
 presence.start()

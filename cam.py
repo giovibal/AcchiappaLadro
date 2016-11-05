@@ -20,5 +20,5 @@ camera = cam.Cam(pir_id=pir_id
                  , gdrive_cmd=gdriveCMD)
 
 
-print("initializing pir ... ")
+print("starting cam ... ")
 camera.start()
