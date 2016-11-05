@@ -36,12 +36,21 @@ class Cam:
         # self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
 
+        print("Program started at %s" % datetime.datetime.now())
+        print("-----------------------------------------------")
+        print("pir ID    : %s" % self.pir_id)
+        print("mqtt host : %s" % self.mqtt_host)
+        print("mqtt topic: %s" % self.mqtt_topic)
+        print("photo file: %s" % self.file_path_photo)
+        print("video file: %s" % self.file_path_video)
+        print("-----------------------------------------------")
+
     def on_connect(self, client, userdata, flags, rc):
+        print("on connect: " + str(rc))
         self.mqtt_client.subscribe(self.mqtt_topic, 0)
-        print("rc: " + str(rc))
 
     def on_message(self, client, userdata, msg):
-        print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+        print("on message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
         message = str(msg.payload)
         if "Presenza rilevata" in message:
             self.presence_detected = True
@@ -78,9 +87,10 @@ class Cam:
         print('Uploading video %s started' % filename)
 
     def start(self):
-        # Connect to MQTT
+        print("Connect to MQTT ...")
         self.mqtt_client.connect(self.mqtt_host, 1883, 20)
         self.mqtt_client.loop_start()
+        print("Connect to MQTT done")
 
         with picamera.PiCamera() as self.camera:
             stream = picamera.PiCameraCircularIO(self.camera, seconds=5)
@@ -93,14 +103,7 @@ class Cam:
             self.camera.vflip = True
             # camera.start_recording(stream, format='h264', quality=20)
             self.camera.start_recording(stream, format='h264')
-            print("Program started at %s" % datetime.datetime.now())
-            print("-----------------------------------------------")
-            print("pir ID    : %s" % self.pir_id)
-            print("mqtt host : %s" % self.mqtt_host)
-            print("mqtt topic: %s" % self.mqtt_topic)
-            print("photo file: %s" % self.file_path_photo)
-            print("video file: %s" % self.file_path_video)
-            print("-----------------------------------------------")
+
             try:
                 while True:
                     self.camera.wait_recording(0.1)
