@@ -36,13 +36,13 @@ class Cam:
         # self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
 
-    def on_connect(self, mosq, obj, rc):
+    def on_connect(self, client, userdata, flags, rc):
         self.mqtt_client.subscribe(self.mqtt_topic, 0)
         print("rc: " + str(rc))
 
-    def on_message(self, mosq, obj, msg):
+    def on_message(self, client, userdata, msg):
         print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
-        message = msg.payload
+        message = str(msg.payload)
         if "Presenza rilevata" in message:
             self.presence_detected = True
         else:
@@ -80,7 +80,7 @@ class Cam:
     def start(self):
         # Connect to MQTT
         self.mqtt_client.connect(self.mqtt_host, 1883, 20)
-        self.mqtt_client.subscribe(self.mqtt_topic, 0)
+        self.mqtt_client.loop_start()
 
         with picamera.PiCamera() as self.camera:
             stream = picamera.PiCameraCircularIO(self.camera, seconds=5)
@@ -119,4 +119,5 @@ class Cam:
 
             finally:
                 self.camera.stop_recording()
+                self.mqtt_client.loop_stop()
                 print("Program ended at %s" % datetime.datetime.now())
