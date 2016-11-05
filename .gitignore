@@ -3,3 +3,6 @@
 gdrive
 *.jar
 mqtt-broker
+*.jpg
+*.h264
+
