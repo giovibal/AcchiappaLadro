@@ -10,6 +10,11 @@ sensor = 4
 
 gdriveCMD = "/home/pi/AcchiappaLadro/gdrive/gdrive -c /home/pi/AcchiappaLadro/gdrive/conf upload -p 0B5VaZPNYmmfca0dnMDdFLXppNTA -f {} && rm {} &"
 
+mqtt_host = "iot.eclipse.org"
+mqtt_topic = "/baleani/laspio/pir/1"
+file_path_photo = '/home/pi/AcchiappaLadro/photo_%s.jpg'
+file_path_video = '/home/pi/AcchiappaLadro/video_%s.h264'
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(sensor, GPIO.IN, GPIO.PUD_DOWN)
 
@@ -22,7 +27,7 @@ current_datetime = datetime.datetime.now()
 diagnosticCounter = 0
 
 def write_photo(camera, timestamp):
-    filename = '/home/pi/AcchiappaLadro/photo_%s.jpg' % timestamp
+    filename = file_path_photo % timestamp
     print('Writing photo %s ...' % filename)
     camera.capture(filename, resize=(1280, 768), use_video_port=True)
     print('Writing photo %s done.' % filename)
@@ -33,7 +38,7 @@ def write_photo(camera, timestamp):
     print('Uploading photo %s started' % filename)
 
 def write_video(stream, timestamp):
-    filename = '/home/pi/AcchiappaLadro/motion_%s.h264' % timestamp
+    filename = file_path_video % timestamp
     print('Writing video %s ...' % filename)
     with stream.lock:
         # Find the first header frame in the video
@@ -54,7 +59,7 @@ def write_video(stream, timestamp):
 
 def mqtt_publish(topic, msg, retn):
     try:
-        publish.single(topic, msg, hostname="iot.eclipse.org", retain=True)
+        publish.single(topic, msg, hostname=mqtt_host, retain=True)
     except:
         print("Error with publish on mqtt: ", sys.exc_info()[0])
 
@@ -83,10 +88,8 @@ with picamera.PiCamera() as camera:
             if diagnosticCounter % (10*60) == 0:
                 msg = "Nessuna presenza - %s " % ts_str
                 print(msg)
-                publish.single("/baleani/laspio/pir1", msg, hostname="iot.eclipse.org", retain=True)
                 mqtt_publish("/baleani/laspio/pir1", msg, False)
                 diagnosticCounter = 0
-
 
             previous_state = current_state
             current_state = GPIO.input(sensor)
@@ -125,9 +128,6 @@ with picamera.PiCamera() as camera:
                 #             publish.single("/baleani/laspio/pir1", msg, hostname="iot.eclipse.org", retain=True)
                 #         except:
                 #             print "Error with publish on mqtt: ", sys.exc_info()[0]
-
-
-
 
     finally:
         camera.stop_recording()

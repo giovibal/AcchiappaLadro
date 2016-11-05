@@ -21,3 +21,13 @@
          
     N.B. gdrive (https://github.com/prasmussen/gdrive) is not included, 
     you must download and configure by yourself
+    
+3. Configure the ssh reverse tunnel (optional)
+    
+    If you want access your raspberry pi remotely, and you have a cloud "always-on" linux server,
+    you can configure a "reverse ssh tunnel".
+    ssh_tunnel.sh is the script you can use
+    
+    put this on /etc/rc.local
+    
+        /home/pi/AcchiappaLadro/ssh_tunnel.sh user@cloud.server 5000 &

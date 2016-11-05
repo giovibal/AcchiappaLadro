@@ -5,3 +5,4 @@ gdrive
 mqtt-broker
 *.jpg
 *.h264
+private/

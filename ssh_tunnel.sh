@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cloud_ssh_host = $1
-cloud_public_port = $2
+cloud_ssh_host=$1
+cloud_public_port=$2
 
 while true; do
         ssh -o ConnectTimeout=30 \
