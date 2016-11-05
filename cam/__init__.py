@@ -33,7 +33,7 @@ class Cam:
 
         self.mqtt_client = mqtt.Client()
         # Assign event callbacks
-        self.mqtt_client.on_connect = self.on_connect
+        # self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message
 
     def on_connect(self, mosq, obj, rc):
@@ -80,6 +80,7 @@ class Cam:
     def start(self):
         # Connect to MQTT
         self.mqtt_client.connect(self.mqtt_host, 1883, 20)
+        self.mqtt_client.subscribe(self.mqtt_topic, 0)
 
         with picamera.PiCamera() as self.camera:
             stream = picamera.PiCameraCircularIO(self.camera, seconds=5)
