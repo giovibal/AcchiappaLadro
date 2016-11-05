@@ -111,13 +111,15 @@ with picamera.PiCamera() as camera:
             ts_str = ts.strftime('%Y-%m-%d_%H-%M-%S')
 
             diagnosticCounter = diagnosticCounter + 1
-            if diagnosticCounter % (10*60) == 0:
+            # if diagnosticCounter % (10*60) == 0:
+            if diagnosticCounter % (10*5) == 0:
                 msg = "Nessuna presenza - %s " % ts_str
                 print(msg)
                 mqtt_publish(mqtt_topic, msg, False, 0, ts, pir_id)
                 diagnosticCounter = 0
 
             previous_state = current_state
+            # print("prev state %s, curr state %s" % (previous_state, current_state))
             current_state = GPIO.input(sensor)
             if current_state != previous_state:
                 new_state = "HIGH" if current_state else "LOW"
