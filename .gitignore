@@ -6,4 +6,4 @@ mqtt-broker
 *.jpg
 *.h264
 private/
-#config.ini
+config.ini
