@@ -8,13 +8,8 @@ import sys
 import json
 import configparser
 
-# pir_id = "1"
-# mqtt_host = "iot.eclipse.org"
-# mqtt_topic = "/baleani/laspio/pir/%s" % pir_id
-file_path_photo = '/home/pi/AcchiappaLadro/photo_%s_%s.jpg'
-file_path_video = '/home/pi/AcchiappaLadro/video_%s_%s.h264'
-
-# gdriveCMD = "/home/pi/AcchiappaLadro/gdrive/gdrive -c /home/pi/AcchiappaLadro/gdrive/conf upload -p 0B5VaZPNYmmfca0dnMDdFLXppNTA -f {} && rm {} &"
+file_path_photo = '%s/photo_%s_%s.jpg'
+file_path_video = '%s/video_%s_%s.h264'
 
 sensor = 4
 
@@ -36,8 +31,8 @@ def configure():
     return config
 
 
-def write_photo(camera, timestamp):
-    filename = file_path_photo % (pir_id, timestamp)
+def write_photo(camera, timestamp, local_tmp_dir):
+    filename = file_path_photo % (local_tmp_dir, pir_id, timestamp)
     print('Writing photo %s ...' % filename)
     camera.capture(filename, resize=(1280, 768), use_video_port=True)
     print('Writing photo %s done.' % filename)
@@ -48,8 +43,8 @@ def write_photo(camera, timestamp):
     print('Uploading photo %s started' % filename)
 
 
-def write_video(video_stream, timestamp):
-    filename = file_path_video % (pir_id, timestamp)
+def write_video(video_stream, timestamp, local_tmp_dir):
+    filename = file_path_video % (local_tmp_dir, pir_id, timestamp)
     print('Writing video %s ...' % filename)
     with video_stream.lock:
         # Find the first header frame in the video
@@ -82,7 +77,9 @@ with picamera.PiCamera() as camera:
     pir_id = config['device']['pir_id']
     mqtt_host = config['mqtt']['mqtt_host']
     mqtt_topic = config['mqtt']['mqtt_topic']
+    local_tmp_dir = config['gdrive']['local_tmp_dir']
     gdriveCMD = config['gdrive']['cmd']
+
 
     stream = picamera.PiCameraCircularIO(camera, seconds=5)
 

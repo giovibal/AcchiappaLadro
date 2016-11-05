@@ -12,7 +12,7 @@ set -e
 ### END INIT INFO
 
 DAEMON_PATH="/home/pi/AcchiappaLadro"
-DAEMON="/usr/bin/python3 /home/pi/AcchiappaLadro/VideoOnPir2.py"
+DAEMON="/usr/bin/python3 /home/pi/AcchiappaLadro/main.py"
 DAEMONOPTS="$DAEMON_PATH/VideoOnPir2.py"
 
 NAME="acchiappa-ladro"
@@ -20,7 +20,6 @@ DESC="$NAME daemon"
 PIDFILE="/var/run/$NAME.pid"
 SCRIPTNAME="/etc/init.d/$NAME"
 LOGFILE="/var/log/$NAME.log"
-#JAVA_HOME="/usr/lib/jvm/jdk-8-oracle-arm-vfp-hflt"
 
 case "$1" in
 start)
