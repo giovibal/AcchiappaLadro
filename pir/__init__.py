@@ -47,33 +47,35 @@ class Pir:
         except:
             print("Error with publish on mqtt: ", sys.exc_info()[0])
 
+    def publish_presence_status(self):
+        ts = datetime.datetime.now()
+        ts_str = ts.strftime('%Y-%m-%d_%H-%M-%S')
+        if self.current_state:
+            msg = "Presenza rilevata - %s (%s)" % (ts_str, self.current_state)
+            print(msg)
+            self.mqtt_publish(msg, False, 1, ts)
+        else:
+            msg = "Nessuna presenza - %s  (%s)" % (ts_str, self.current_state)
+            print(msg)
+            self.mqtt_publish(msg, False, 0, ts)
+            self.diagnosticCounter = 0
+
     def start(self):
         try:
             while True:
                 time.sleep(0.1)
-                ts = datetime.datetime.now()
-                ts_str = ts.strftime('%Y-%m-%d_%H-%M-%S')
+
+                # set current and prev status...
+                previous_state = self.current_state
+                self.current_state = GPIO.input(self.sensor)
+                # print("prev state %s, curr state %s" % (previous_state, self.current_state))
 
                 self.diagnosticCounter += 1
                 # if diagnosticCounter % (10*60) == 0:
                 if self.diagnosticCounter % (10*5) == 0:
-                    msg = "Nessuna presenza - %s " % ts_str
-                    print(msg)
-                    self.mqtt_publish(msg, False, 0, ts)
-                    self.diagnosticCounter = 0
-
-                previous_state = self.current_state
-                # print("prev state %s, curr state %s" % (previous_state, current_state))
-                self.current_state = GPIO.input(self.sensor)
-                if self.current_state != previous_state:
-                    new_state = "HIGH" if self.current_state else "LOW"
-
-                    print("%s GPIO pin %s is %s" % (ts_str, self.sensor, new_state))
-
-                    if new_state == "HIGH":
-                        msg = "Presenza rilevata - %s" % ts_str
-                        print(msg)
-                        self.mqtt_publish(msg, False, 1, ts)
+                    self.publish_presence_status()
+                elif self.current_state != previous_state:
+                    self.publish_presence_status()
         finally:
             GPIO.cleanup()
             print("Program ended at %s" % datetime.datetime.now())
