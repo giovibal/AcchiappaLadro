@@ -1,25 +1,19 @@
 import datetime
+import time
+
 import paho.mqtt.client as mqtt
 import picamera
 import io
 import subprocess
 
-
 class Cam:
 
     def __init__(self, pir_id, mqtt_host, mqtt_topic, local_tmp_dir, gdrive_cmd):
-        # self.config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
-        # self.config.read('config.ini')
-        # self.pir_id = self.config['device']['pir_id']
-        # self.mqtt_host = self.config['mqtt']['mqtt_host']
-        # self.mqtt_topic = self.config['mqtt']['mqtt_topic']
-        # self.local_tmp_dir = self.config['gdrive']['local_tmp_dir']
         self.pir_id = pir_id
         self.mqtt_host = mqtt_host
         self.mqtt_topic = mqtt_topic
         self.local_tmp_dir = local_tmp_dir
         self.gdriveCMD = gdrive_cmd
-
 
         self.file_path_photo = '%s/photo_%s_%s.jpg'
         self.file_path_video = '%s/video_%s_%s.h264'
@@ -86,7 +80,8 @@ class Cam:
         subprocess.call(cmd, shell=True)
         print('Uploading video %s started' % filename)
 
-    def start(self):
+    def start(self, delay):
+        time.sleep(delay)
         print("Connect to MQTT ...")
         self.mqtt_client.connect(self.mqtt_host, 1883, 20)
         self.mqtt_client.loop_start()
@@ -113,12 +108,15 @@ class Cam:
                     if self.presence_detected:
                         msg = "Presenza rilevata - %s" % ts_str
                         print(msg)
-                        self.write_photo(self.camera, ts_str)
-                        # Keep recording for 10 seconds and only then write the
-                        # stream to disk
-                        self.camera.wait_recording(10)
-                        print("%s Registrazione completata per il video" % ts_str)
-                        self.write_video(stream, ts_str)
+                        try:
+                            self.write_photo(self.camera, ts_str)
+                            # Keep recording for 10 seconds and only then write the
+                            # stream to disk
+                            self.camera.wait_recording(10)
+                            print("%s Registrazione completata per il video" % ts_str)
+                            self.write_video(stream, ts_str)
+                        except Exception as error:
+                            print("Error while uploading photo and video: %s" % str(error))
 
             finally:
                 self.camera.stop_recording()

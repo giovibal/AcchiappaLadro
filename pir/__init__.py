@@ -60,7 +60,8 @@ class Pir:
             self.mqtt_publish(msg, False, 0, ts)
             self.diagnosticCounter = 0
 
-    def start(self):
+    def start(self, delay):
+        time.sleep(delay)
         try:
             while True:
                 time.sleep(0.1)

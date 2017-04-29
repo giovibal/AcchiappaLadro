@@ -20,5 +20,6 @@ camera = cam.Cam(pir_id=pir_id
                  , gdrive_cmd=gdriveCMD)
 
 
-print("starting cam ... ")
-camera.start()
+waitSeconds = 10
+print("starting cam, wait %s sec to acquire internet connection ... " % waitSeconds)
+camera.start(delay=waitSeconds)
